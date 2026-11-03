@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en" data-c="film">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}</style>
+</head>
+<body>
+<title>CEER EXOBOT Case Study</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,300;100,400;125,200;125,300;125,800;125,900&family=Michroma&display=swap">
+<style>
+/* One continuous dark sheet, composed like a Photoshop canvas 1400 units wide.
+   Three type voices: heavy block for single loud words, light expanded for sentences, tiny stamped labels.
+   Volume alternates down the page: loud, medium, quiet, dense, silent. */
+:root{
+  --ink:#000002; --line:#F7FFFF; --rear:#E4463A; --sand:#CDBAAA; --clay:#EFECE7;
+  --steel:#8D9096; --dim:#AEB0B7; --block:"Archivo","Inter Display","Helvetica Neue",Arial,sans-serif;
+  --mark:"Michroma","Archivo","Inter Display",Arial,sans-serif;
+  --u:calc(min(100vw,1760px)/1400); color-scheme:dark;
+}
+html{background:var(--ink)}
+body{background:var(--ink);color:var(--line);font-family:var(--block);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.sheet{position:relative;max-width:1760px;margin-inline:auto;overflow-x:clip}
+section{position:relative}
+img{display:block;max-width:none}
+.pa{position:absolute}
+.heavy{font-stretch:125%;font-weight:900;letter-spacing:-.025em;line-height:.9;text-transform:uppercase}
+h2{margin:0;font-stretch:125%;font-weight:200;font-size:calc(var(--u)*46);line-height:1.1;letter-spacing:-.012em;text-wrap:balance}
+h2.big{font-size:calc(var(--u)*76)}
+p{margin:0;font-size:clamp(15px,calc(var(--u)*16.5),20px);font-weight:300;color:var(--dim);line-height:1.6;max-width:60ch}
+.k{font-family:var(--mark);font-size:clamp(9px,calc(var(--u)*10),12px);letter-spacing:.2em;text-transform:uppercase;color:var(--steel);line-height:1.6}
+.cap{font-size:clamp(13px,calc(var(--u)*13),15px);font-weight:300;color:var(--dim);line-height:1.5}
+.stack{display:flex;flex-direction:column;gap:calc(var(--u)*16)}
+.stack>*{min-width:0}
+.sp{display:none}
+
+/* 32-tick rail */
+.rail{position:fixed;top:50%;right:max(10px,env(safe-area-inset-right,0px));transform:translateY(-50%);display:flex;flex-direction:column;gap:5px;z-index:40;mix-blend-mode:difference}
+.rail i{display:block;width:10px;height:1px;background:#fff;opacity:.28;transition:opacity .25s,width .25s}
+.rail i.on{opacity:1;width:16px}
+/* cover switcher, review only */
+
+.bolt{position:absolute;width:calc(var(--u)*24);height:calc(var(--u)*24);transform:translate(-50%,-50%) rotate(calc(var(--r,0)*1deg));z-index:6}
+.bolt svg{display:block;width:100%;height:100%;overflow:visible}
+
+/* 01 cover */
+#cover{height:calc(var(--u)*850);background:var(--ink);overflow:hidden}
+.cv{position:absolute;inset:0;display:none}
+:root[data-c="v2"] .cv.v2,:root[data-c="v3"] .cv.v3,:root[data-c="v4"] .cv.v4{display:block}
+.cv .bg,.cv .fg{left:0;top:calc(var(--u)*62);width:calc(var(--u)*1400)}
+.cv .fg{pointer-events:none}
+.eyebrow{font-stretch:125%;font-weight:200;font-size:calc(var(--u)*30);letter-spacing:-.01em;line-height:1.1}
+.ttl{left:calc(var(--u)*64);top:calc(var(--u)*14)}
+.ttl .heavy{font-size:calc(var(--u)*168);margin-top:calc(var(--u)*12);color:#EEF0F3;line-height:.96}
+.cv.v3 .bg,.cv.v3 .fg{top:calc(var(--u)*10)}
+.cv.v3 .ttl{left:0;right:0;top:calc(var(--u)*146);text-align:center}
+.cv.v3 .ttl .heavy{font-size:calc(var(--u)*112);color:#F3F4F6}
+.cv.v4 .bg,.cv.v4 .fg{top:0}
+.cv.v4 .wrap{left:0;top:0;width:calc(var(--u)*1400);height:calc(var(--u)*787);overflow:hidden;isolation:isolate;-webkit-mask-image:linear-gradient(to top,transparent 0,#000 16%);mask-image:linear-gradient(to top,transparent 0,#000 16%)}
+.cv.v4 .wrap img{left:0;top:0;width:100%}
+.cv.v4 .f0{z-index:2}
+.cv.v4 .ttl{z-index:1;top:calc(var(--u)*17)}
+.cv.v4 .ttl .heavy{font-size:calc(var(--u)*136);margin-top:calc(var(--u)*4);color:#fff;mix-blend-mode:overlay}
+.cv.v4 .eyebrow{color:#fff;font-size:calc(var(--u)*28)}
+.meta{z-index:5;left:calc(var(--u)*64);right:calc(var(--u)*64);top:calc(var(--u)*806);display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+
+
+/* film cover: the approved video as a scroll-driven frame sequence, every frame kept */
+#film{height:calc(100vh + 3700px);background:var(--ink);display:none}
+:root[data-c="film"] #film{display:block}
+:root[data-c="film"] #cover{display:none}
+.pin{position:sticky;top:0;height:100vh;height:100dvh;overflow:hidden;display:flex;align-items:center;justify-content:center;--sw:max(min(100vw,1760px),calc(58vh*2.3333))}
+.stage{position:relative;flex:none;width:var(--sw);height:calc(var(--sw)*630/1470);isolation:isolate;background:url(seq/f_0001.jpg) center/100% 100% no-repeat;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 6%,#000 94%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 6%,#000 94%,transparent 100%)}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#ft{z-index:3;pointer-events:none}
+.stage .eb{position:absolute;z-index:4;left:calc(var(--sw)*110/1470);top:calc(var(--sw)*38/1470);font-stretch:125%;font-weight:200;font-size:calc(var(--sw)*27/1470);letter-spacing:-.01em;line-height:1.1;color:#fff;opacity:var(--e,1)}
+.stage .bn{position:absolute;z-index:2;left:calc(var(--sw)*106/1470);top:calc(var(--sw)*65.4/1470);font-size:calc(var(--sw)*111/1470);line-height:1;white-space:nowrap;color:#9EA1A9;mix-blend-mode:screen;opacity:var(--b,1);transform:translate3d(0,calc(var(--sw)*var(--bt,0)/1470),0)}
+.fx{position:absolute;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));padding-inline:max(40px,calc(var(--u)*64));display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.fx b{font-weight:400;color:var(--line);font-variant-numeric:tabular-nums}
+.ld{position:absolute;left:50%;top:calc(50% + var(--sw)*200/1470);transform:translateX(-50%);display:flex;gap:6px;transition:opacity .4s}
+.ld i{display:block;width:1px;height:9px;background:#fff;opacity:.2}
+.ld i.on{opacity:1}
+.ld.done{opacity:0}
+
+/* 02 occasion */
+#occ{height:calc(var(--u)*620);z-index:2}
+#occ .img{left:calc(var(--u)*560);top:calc(var(--u)*-34);width:calc(var(--u)*840);height:calc(var(--u)*520);object-fit:cover;object-position:60% 50%;clip-path:polygon(9% 0,100% 0,100% 100%,0 100%)}
+#occ .stack{position:absolute;left:calc(var(--u)*64);top:calc(var(--u)*70);width:calc(var(--u)*500)}
+
+/* 03 job */
+#job{height:calc(var(--u)*680)}
+#job .t{position:absolute;left:calc(var(--u)*64);top:calc(var(--u)*20);width:calc(var(--u)*560)}
+#job .b{position:absolute;left:calc(var(--u)*760);top:calc(var(--u)*30);width:calc(var(--u)*520)}
+#job .lines{left:calc(var(--u)*67);top:calc(var(--u)*250);width:calc(var(--u)*1330);clip-path:inset(0 calc(100% - var(--l,100%)) 0 0);opacity:.92}
+
+/* 04 location */
+#loc{height:calc(var(--u)*1080);z-index:3;margin-top:calc(var(--u)*-40)}
+.wall{left:calc(var(--u)*-105);top:0;width:calc(var(--u)*1610);height:calc(var(--u)*906);clip-path:polygon(0 11%,100% 0,100% 55%,0 67%);isolation:isolate}
+.wall img{width:100%;height:100%;object-fit:cover}
+.wall .w{position:absolute;left:calc(var(--u)*150);top:calc(var(--u)*118);font-size:calc(var(--u)*238);color:#fff;mix-blend-mode:overlay;white-space:nowrap}
+#loc .car{left:calc(var(--u)*67);top:calc(var(--u)*320);width:calc(var(--u)*1330);transform:translate3d(calc(var(--u)*var(--d,0)),0,0);filter:drop-shadow(0 calc(var(--u)*16) calc(var(--u)*18) rgba(0,0,0,.6));z-index:2}
+#loc .stack{position:absolute;left:calc(var(--u)*64);top:calc(var(--u)*760);width:calc(var(--u)*560)}
+.loupe{left:calc(var(--u)*1000);top:calc(var(--u)*728);width:calc(var(--u)*300);height:calc(var(--u)*300);z-index:5}
+.loupe .eye{position:absolute;inset:7.5%;border-radius:50%;background:url(img/a0060.webp) no-repeat;background-size:calc(var(--u)*900) auto;background-position:calc(var(--u)*-286) calc(var(--u)*-168);box-shadow:0 0 0 1px rgba(247,255,255,.28)}
+.loupe svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(calc(var(--r,0)*.25deg))}
+#loc .lc{position:absolute;left:calc(var(--u)*750);top:calc(var(--u)*850);width:calc(var(--u)*236);text-align:right}
+
+/* 05 talent */
+#talent{height:calc(var(--u)*960)}
+#talent .t{position:absolute;left:calc(var(--u)*64);top:calc(var(--u)*30);width:calc(var(--u)*560)}
+#talent .b{position:absolute;left:calc(var(--u)*760);top:calc(var(--u)*30);width:calc(var(--u)*520)}
+.wipe{position:absolute;left:0;top:calc(var(--u)*170);width:calc(var(--u)*1400);height:calc(var(--u)*790);overflow:hidden;--x:62%;touch-action:pan-y;clip-path:polygon(0 7.6%,100% 0,100% 92%,0 100%)}
+.wipe img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.wipe .c{clip-path:polygon(calc(var(--x) + 7%) 0,100% 0,100% 100%,calc(var(--x) - 7%) 100%)}
+.wipe .bar{position:absolute;left:var(--x);top:-4%;height:108%;width:1px;background:var(--line);box-shadow:0 0 12px rgba(247,255,255,.8);transform:rotate(7.1deg);pointer-events:none}
+.wipe input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize}
+.foc{position:absolute;inset:0;pointer-events:none}
+.wipe input:focus-visible+.foc{outline:2px solid var(--rear);outline-offset:-6px}
+.tag{position:absolute;top:calc(var(--u)*70);color:#fff;mix-blend-mode:difference;pointer-events:none}
+.tag.a{left:calc(var(--u)*64)}.tag.b{right:calc(var(--u)*64)}
+
+#doors{height:calc(var(--u)*640);z-index:3}
+#doors .slab{left:calc(var(--u)*730);top:calc(var(--u)*30);width:calc(var(--u)*670);height:calc(var(--u)*460);background:linear-gradient(100deg,#b7a595 0%,var(--sand) 34%,#dccdbf 100%);clip-path:polygon(calc(var(--u)*76) 0,100% 0,100% 100%,0 100%)}
+#doors .cut{left:calc(var(--u)*60);top:calc(var(--u)*-226);width:calc(var(--u)*830);filter:drop-shadow(calc(var(--u)*46) calc(var(--u)*8) calc(var(--u)*26) rgba(40,22,8,.55));pointer-events:none}
+#doors .s{position:absolute;left:calc(var(--u)*920);top:calc(var(--u)*210);width:calc(var(--u)*410)}
+#doors .s .k{color:#54483e}
+#doors .s p{color:#29231e;font-weight:400}
+#doors .bolt{color:#3a322b}
+#clay2{height:calc(var(--u)*500)}
+#clay2 img{left:0;top:calc(var(--u)*-60);width:calc(var(--u)*1400);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 24%,#000 62%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 24%,#000 62%,transparent 100%)}
+#clay2 .k{position:absolute;right:calc(var(--u)*64);top:calc(var(--u)*380)}
+
+/* 06 on set: the one text-heavy screen */
+#set{padding-block:calc(var(--u)*40) calc(var(--u)*90)}
+.gut{padding-left:calc(var(--u)*64);padding-right:calc(var(--u)*64)}
+.setgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:calc(var(--u)*14);margin-top:calc(var(--u)*44)}
+.setgrid>*{min-width:0}
+.pn{margin:0;position:relative}
+.pn img{width:100%;height:calc(var(--u)*var(--h,400));object-fit:cover;clip-path:polygon(0 3%,100% 0,100% 97%,0 100%)}
+.pn.nd img{object-fit:contain;background:#1d1d1d;clip-path:none}
+.pn figcaption{margin-top:calc(var(--u)*6)}
+.spec{align-self:start;padding-top:calc(var(--u)*6)}
+.spec dl{display:grid;grid-template-columns:auto 1fr;gap:calc(var(--u)*7) calc(var(--u)*22);margin:calc(var(--u)*10) 0 0}
+.spec dt,.spec dd{margin:0;font-family:var(--mark);font-size:clamp(9px,calc(var(--u)*10),12px);letter-spacing:.12em;text-transform:uppercase;line-height:1.6}
+.spec dt{color:#74777e}.spec dd{color:#D6D8DC}
+
+/* 07 light */
+#light{height:calc(var(--u)*900)}
+#light .bgd,#light .bgl{left:0;top:0;width:calc(var(--u)*1400);-webkit-mask-image:linear-gradient(to top,transparent 0,#000 20%);mask-image:linear-gradient(to top,transparent 0,#000 20%)}
+#light .bgl{opacity:var(--o,0)}
+#light .t{position:absolute;left:calc(var(--u)*64);top:calc(var(--u)*70);width:calc(var(--u)*760)}
+#light .ins{left:calc(var(--u)*850);top:calc(var(--u)*640);width:calc(var(--u)*550);clip-path:polygon(7% 0,100% 0,100% 100%,0 100%);z-index:2}
+#light .b{position:absolute;left:calc(var(--u)*64);top:calc(var(--u)*760);width:calc(var(--u)*640)}
+
+/* 08 bars */
+#bars{height:calc(var(--u)*900);overflow:hidden;background:var(--ink)}
+#bars .n{left:0;right:0;top:calc(var(--u)*130);text-align:center;font-size:calc(var(--u)*640);line-height:.86;color:#26282E;font-variant-numeric:tabular-nums}
+.macro{position:absolute;left:0;top:calc(var(--u)*118);width:calc(var(--u)*1400);height:calc(var(--u)*600);--p:100%;mix-blend-mode:screen;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 26%,#000 74%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 26%,#000 74%,transparent 100%)}
+.macro img{position:absolute;inset:0;width:100%;height:100%}
+.macro .off{filter:brightness(.15)}
+.macro .lit{clip-path:inset(0 calc(100% - var(--p)) 0 0)}
+#bars .s{position:absolute;left:calc(var(--u)*64);top:calc(var(--u)*690);width:calc(var(--u)*620)}
+
+/* 09 wardrobe */
+#ward{padding-block:calc(var(--u)*40) calc(var(--u)*80)}
+.same{position:relative;margin-top:calc(var(--u)*30);width:calc(var(--u)*1400);height:calc(var(--u)*640);overflow:hidden;clip-path:polygon(0 6%,100% 0,100% 100%,0 100%)}
+.same img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 45%;transition:opacity .5s}
+.same img.g{opacity:0}
+.same.green img.g{opacity:1}
+.trim{position:absolute;left:calc(var(--u)*64);bottom:calc(var(--u)*24);display:flex;gap:8px}
+.trim button{font-family:var(--mark);font-size:clamp(9px,calc(var(--u)*10),12px);letter-spacing:.2em;color:#fff;background:rgba(0,0,2,.55);border:0;padding:8px 12px;cursor:pointer}
+.trim button[aria-pressed="true"]{background:var(--line);color:var(--ink)}
+.trim button:focus-visible{outline:2px solid var(--rear)}
+.strip{display:flex;gap:calc(var(--u)*6);height:calc(var(--u)*380);margin-top:calc(var(--u)*14)}
+.strip figure{margin:0;flex:1 1 0;min-width:0;position:relative;overflow:hidden;transition:flex-grow .45s cubic-bezier(.2,.7,.1,1)}
+.strip figure:hover{flex-grow:1.7}
+.strip img{width:100%;height:100%;object-fit:cover}
+.strip figcaption{position:absolute;left:calc(var(--u)*14);bottom:calc(var(--u)*12);color:#fff}
+
+/* 10 stunt */
+#stunt{height:calc(var(--u)*840);overflow:hidden}
+.word{font-size:calc(var(--u)*250);color:#E9EAEE;white-space:nowrap}
+#stunt .a{left:calc(var(--u)*64);top:calc(var(--u)*14);transform:translate3d(0,calc(var(--u)*var(--w,0)),0)}
+#stunt .b2{right:calc(var(--u)*100);top:calc(var(--u)*576);transform:translate3d(0,calc(var(--u)*var(--w,0)*-1),0)}
+.top{left:calc(var(--u)*112);top:calc(var(--u)*60);width:calc(var(--u)*1240);z-index:2}
+.top img{position:absolute;inset:0;width:100%}
+.top{height:calc(var(--u)*698)}
+.top .fin{opacity:var(--f,1)}
+#stunt .s{position:absolute;left:calc(var(--u)*64);top:calc(var(--u)*640);width:calc(var(--u)*430);z-index:3}
+
+/* 11 selects */
+#sel{padding-block:calc(var(--u)*30) calc(var(--u)*40)}
+.bento{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:calc(var(--u)*94);gap:calc(var(--u)*6);margin-top:calc(var(--u)*24)}
+.bento figure{margin:0;position:relative;overflow:hidden;background:#07080a}
+.bento img{width:100%;height:100%;object-fit:cover;transition:transform .9s cubic-bezier(.2,.7,.1,1)}
+.bento figure:hover img{transform:scale(1.045)}
+.bento figcaption{position:absolute;left:0;right:0;bottom:0;padding:calc(var(--u)*30) calc(var(--u)*12) calc(var(--u)*10);background:linear-gradient(to top,rgba(0,0,2,.8),transparent);opacity:0;transition:opacity .25s;color:#fff}
+.bento figure:hover figcaption{opacity:1}
+
+/* 12 launch */
+#launch{height:calc(var(--u)*720);overflow:hidden;background:var(--ink)}
+#launch .d{left:calc(var(--u)*64);top:calc(var(--u)*150);font-size:calc(var(--u)*128);color:#6A6C75}
+#launch img{left:0;top:0;width:calc(var(--u)*1400);mix-blend-mode:screen;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16%,#000 76%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 16%,#000 76%,transparent 100%)}
+#launch .s{position:absolute;left:calc(var(--u)*64);top:calc(var(--u)*570);width:calc(var(--u)*640);z-index:2}
+#launch .s p{color:#D9DADF}
+
+/* 13 the turn: the page's one flip */
+#turn{background:var(--rear);color:var(--ink);height:calc(var(--u)*540);overflow:hidden}
+#turn .q{left:calc(var(--u)*64);top:calc(var(--u)*80);font-stretch:125%;font-weight:200;font-size:calc(var(--u)*60);letter-spacing:-.012em;line-height:1.05}
+#turn .l{left:calc(var(--u)*56);top:calc(var(--u)*176);font-size:calc(var(--u)*178);white-space:nowrap;color:var(--ink)}
+#turn .y{left:calc(var(--u)*64);top:calc(var(--u)*400);font-stretch:125%;font-weight:300;font-size:calc(var(--u)*30);letter-spacing:-.005em;color:var(--ink)}
+
+/* 14-15 climax */
+#c1{height:calc(var(--u)*540)}
+#c1 .h{left:calc(var(--u)*64);top:calc(var(--u)*110);width:calc(var(--u)*1272);font-size:calc(var(--u)*88);color:#F2F3F5;line-height:.98}
+#c1 .y{left:calc(var(--u)*64);top:calc(var(--u)*400);font-stretch:125%;font-weight:200;font-size:calc(var(--u)*46);color:var(--line)}
+#c2{height:calc(var(--u)*900);overflow:hidden}
+#c2 .h{left:calc(var(--u)*64);top:calc(var(--u)*60);width:calc(var(--u)*900);font-stretch:125%;font-weight:200;font-size:calc(var(--u)*64);line-height:1.08;letter-spacing:-.012em}
+#c2 .con{left:calc(var(--u)*64);top:calc(var(--u)*280)}
+.strip2{left:0;top:calc(var(--u)*340);width:100%;height:calc(var(--u)*200);overflow:hidden}
+.strip2 img{position:absolute;width:calc(var(--u)*3000);left:calc(var(--u)*-1480);top:calc(var(--u)*-610)}
+.build{position:absolute;left:calc(var(--u)*64);top:calc(var(--u)*600);width:calc(var(--u)*640);padding:calc(var(--u)*30) calc(var(--u)*40);background:linear-gradient(115deg,#1c1d21,#26272c 45%,#17181b);clip-path:polygon(0 0,calc(100% - var(--u)*24) 0,100% calc(var(--u)*24),100% 100%,calc(var(--u)*24) 100%,0 calc(100% - var(--u)*24));color:#D6D8DC}
+.build dl{display:grid;grid-template-columns:auto 1fr;gap:calc(var(--u)*9) calc(var(--u)*28);margin:0}
+.build dt,.build dd{margin:0;font-family:var(--mark);font-size:clamp(9px,calc(var(--u)*10),12px);letter-spacing:.14em;text-transform:uppercase;line-height:1.6}
+.build dt{color:#74777e}
+.build .bolt{color:#6d7077;width:calc(var(--u)*18);height:calc(var(--u)*18)}
+
+/* phone */
+@media (max-width:760px){
+  #film{height:calc(100vh + 2600px)}
+  .fx{padding-inline:16px}
+  .fx span:nth-child(2){display:none}
+
+  .rail{display:none}
+  h2,h2.big{font-size:27px}
+  section{height:auto!important}
+  .sp{display:block}
+  .gut,.m{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  #occ .stack,#job .t,#job .b,#loc .stack,#loc .lc,#talent .t,#talent .b,#doors .s,#light .t,#light .b,#bars .s,#stunt .s,#launch .s,.build{position:static;width:auto;left:auto;top:auto;text-align:left}
+  .stack{gap:12px}
+  .m{padding-block:16px}
+  #occ .sp{height:calc(var(--u)*490)} #cover{height:calc(var(--u)*850)}
+  #job .sp{height:calc(var(--u)*500)} #job .lines{top:auto;bottom:0}
+  #job{min-height:0}
+  #loc{margin-top:0}#loc .sp{height:calc(var(--u)*720)}
+  #talent .wipe{position:relative;top:auto}
+  #doors .sp{height:calc(var(--u)*560)} #doors .s{background:var(--sand);padding:16px}
+  #doors .slab{display:none}
+  #clay2{height:calc(var(--u)*500)!important}
+  .setgrid{grid-template-columns:1fr}
+  .setgrid>*{grid-column:auto!important}
+  .pn img{height:auto!important}
+  #light .sp{height:calc(var(--u)*787)} #light .ins{position:relative;left:auto;top:auto;width:100%}
+  #bars{padding-bottom:16px}#bars .sp{height:calc(var(--u)*760)}
+  #stunt .sp{height:calc(var(--u)*760)}
+  .same{width:100%}
+  .strip{height:200px}
+  .bento{grid-auto-rows:calc(var(--u)*150)}
+  #launch .sp{height:calc(var(--u)*620)}
+  #turn{height:calc(var(--u)*700)!important}
+  #turn .q{font-size:26px}#turn .y{font-size:17px}
+  #c1{height:calc(var(--u)*1000)!important}#c1 .h{top:calc(var(--u)*90)}#c1 .y{top:calc(var(--u)*700);font-size:24px}
+  #c2{height:auto!important;padding-bottom:40px}#c2 .h{position:static;width:auto;font-size:24px;padding:24px 16px 8px}#c2 .con{position:static;padding:0 16px}
+  .strip2{position:relative;top:auto;margin-top:20px}
+  .build{margin:20px 16px 0;padding:20px}
+}
+@media (prefers-reduced-motion:reduce){.rail i,.strip figure,.bento img,.same img{transition:none}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="hex" viewBox="-13 -13 26 26">
+    <polygon points="12,0 6,10.4 -6,10.4 -12,0 -6,-10.4 6,-10.4" fill="none" stroke="currentColor" stroke-width="1"/>
+    <circle r="7.6" fill="none" stroke="currentColor" stroke-width=".7"/>
+    <polygon points="4.2,0 2.1,3.6 -2.1,3.6 -4.2,0 -2.1,-3.6 2.1,-3.6" fill="none" stroke="currentColor" stroke-width="1"/>
+    <line x1="7.6" y1="0" x2="17" y2="0" stroke="#E4463A" stroke-width="1.6"/>
+  </symbol>
+</svg>
+
+<nav class="rail" aria-hidden="true" id="rail"></nav>
+
+<main class="sheet" id="sheet">
+
+<section id="film" aria-label="Every frame here was built, not shot.">
+  <div class="pin">
+    <div class="stage">
+      <canvas id="fc" width="1470" height="630" role="img" aria-label="The EXOBOT sedan changes from clay to its finished form, then lights come up on it against a concrete wall"></canvas>
+      <div class="eb">Every frame here was</div>
+      <div class="bn heavy">Built, not shot.</div>
+      <canvas id="ft" width="1470" height="630" aria-hidden="true"></canvas>
+    </div>
+    <div class="ld" id="ld" aria-hidden="true"></div>
+    <div class="fx k"><span>CEER EXOBOT</span><span>3D, CGI and launch imagery</span><span>Frame <b id="fn">001</b> / 241</span></div>
+  </div>
+</section>
+
+<section id="occ">
+  <img class="pa img" src="img/a0008.webp" alt="EXOBOT sedan with its door raised against a concrete wall">
+  <div class="sp"></div>
+  <div class="stack m">
+    <span class="k">The occasion</span>
+    <h2>A new brand gets one first introduction.</h2>
+    <p>CEER is Saudi Arabia's first EV brand. On 21 September 2026 it revealed EXOBOT, its first flagship sedan and SUV. It was the biggest moment in the brand's history. We helped it look the part.</p>
+  </div>
+</section>
+
+<section id="job">
+  <div class="t m"><h2 class="big">No car.<br>No location.<br>No camera.</h2></div>
+  <div class="b m"><p>CEER designed and engineered EXOBOT. We built it in 3D from scratch, then lit and rendered it for launch.</p></div>
+  <div class="sp"></div>
+  <img class="pa lines" id="lines" src="img/a0011_lines.webp" alt="White line drawing of the EXOBOT sedan in side profile">
+</section>
+
+<section id="loc">
+  <div class="pa wall">
+    <img src="img/a0011_plate.webp" alt="">
+    <span class="w heavy" aria-hidden="true">EXOBOT</span>
+  </div>
+  <img class="pa car" id="car" src="img/a0011_cut.webp" alt="The EXOBOT sedan in side profile, crossing out of the concrete wall">
+  <div class="sp"></div>
+  <div class="stack m">
+    <span class="k">Location</span>
+    <h2>Location: none.</h2>
+    <p>So we built a wall, and cut one hard slash of light across it.</p>
+  </div>
+  <div class="pa loupe"><div class="eye" role="img" aria-label="Close view of the wheel and red brake caliper"></div><svg viewBox="0 0 200 200" aria-hidden="true" id="bezel"></svg></div>
+  <p class="cap lc m">The triangular wheel motif is CEER's, drawn from Al-Lahuj openings in Saudi architecture.</p>
+</section>
+
+<section id="talent">
+  <div class="t m stack"><span class="k">Talent</span><h2>Nothing to hide behind.</h2></div>
+  <div class="b m"><p>This is clay: same camera, no paint, no leather, no screens. Every shape has to hold up on its own.</p></div>
+  <div class="wipe" id="wipe">
+    <img src="img/a0054.webp" alt="Final render of the driver cabin, dark with red trim">
+    <img class="c" src="img/a0150.webp" alt="Clay render of the same cabin from the same camera, all matte white">
+    <span class="bar"></span>
+    <span class="k tag a">Final</span><span class="k tag b">Clay</span>
+    <input id="wipe-range" type="range" min="6" max="94" value="62" aria-label="Move between the final render and the clay render">
+    <span class="foc"></span>
+  </div>
+</section>
+
+<section id="doors">
+  <div class="pa slab" aria-hidden="true"></div>
+  <span class="bolt" style="left:calc(var(--u)*1372);top:calc(var(--u)*58)"><svg><use href="#hex"/></svg></span>
+  <span class="bolt" style="left:calc(var(--u)*1372);top:calc(var(--u)*462)"><svg><use href="#hex"/></svg></span>
+  <img class="pa cut" src="img/a0141_cut.webp" alt="Clay model of the EXOBOT SUV with both doors raised">
+  <div class="sp"></div>
+  <div class="s stack">
+    <span class="k">Clay. EXOBOT SUV</span>
+    <p>CEER's Shahin Wing Doors, raised, with the panels inside them finished too.</p>
+  </div>
+</section>
+
+<section id="clay2">
+  <img class="pa" src="img/a0089.webp" alt="Clay model of the EXOBOT sedan from above the rear, with its red tail light on">
+  <span class="k">Clay. EXOBOT sedan. Tail light on</span>
+</section>
+
+<section id="set" class="gut">
+  <div class="stack" style="max-width:calc(var(--u)*900)">
+    <span class="k">On set</span>
+    <h2 class="big">This is what the set looks like.</h2>
+    <p>Most of those thin wire outlines around the car are lights.</p>
+  </div>
+  <div class="setgrid">
+    <figure class="pn" style="grid-column:span 7;--h:450"><img src="img/b_front.webp" alt="Blender viewport of the sedan with light outlines around it"><figcaption class="cap">Charge port shot. The grey car in the viewport, with its lights around it.</figcaption></figure>
+    <div class="spec" style="grid-column:span 5">
+      <span class="k">Render settings, cockpit scene</span>
+      <dl><dt>Software</dt><dd>Blender 4.2.3 LTS</dd><dt>Engine</dt><dd>Cycles</dd><dt>Device</dt><dd>GPU Compute</dd><dt>Max samples</dt><dd>4096</dd><dt>Noise threshold</dt><dd>0.0100</dd><dt>Denoiser</dt><dd>OpenImageDenoise</dd><dt>Passes</dt><dd>Albedo and normal</dd></dl>
+      <figure class="pn" style="--h:210;margin-top:calc(var(--u)*22)"><img src="img/b_nodes1.webp" alt="Node graph for the car paint material"><figcaption class="cap">Procedural car paint, built from stacked node groups.</figcaption></figure>
+    </div>
+    <figure class="pn" style="grid-column:span 4;--h:330"><img src="img/b_seats.webp" alt="Blender viewport of the seats"><figcaption class="cap">Seat shot, with the cabin in the viewport.</figcaption></figure>
+    <figure class="pn" style="grid-column:span 4;--h:330"><img src="img/b_doors.webp" alt="Blender viewport of the sedan with doors up"><figcaption class="cap">Doors up, surrounded by lights.</figcaption></figure>
+    <figure class="pn" style="grid-column:span 4;--h:330"><img src="img/b_wheel.webp" alt="Blender viewport of the sedan from above"><figcaption class="cap">Front wheel shot. The set from above.</figcaption></figure>
+    <figure class="pn" style="grid-column:span 7;--h:420"><img src="img/b_cockpit.webp" alt="Blender viewport of the cockpit"><figcaption class="cap">Cockpit shot. Scene lights run through the cabin.</figcaption></figure>
+    <div class="stack" style="grid-column:span 5">
+      <figure class="pn nd" style="--h:190"><img src="img/b_nodes2.webp" alt="Node graph for tire rubber"><figcaption class="cap">Tire rubber material.</figcaption></figure>
+      <figure class="pn nd" style="--h:170"><img src="img/b_nodes3.webp" alt="Node graph with a color ramp"><figcaption class="cap">Clay material, with a color ramp and mix shader.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="light">
+  <img class="pa bgd" src="img/a0047.jpg" alt="The sedan in the dark">
+  <img class="pa bgl" src="img/a0047_lit.jpg" alt="">
+  <div class="sp"></div>
+  <div class="t m stack"><span class="k">Light</span><h2 class="big">There's no sun unless we add one.</h2></div>
+  <div class="b m"><p>We placed every highlight, edge by edge. Then we made the real call: most of this car stays in the dark.</p></div>
+  <img class="pa ins" src="img/a0001.webp" alt="Rear spoiler and tail light of the sedan, with a hard edge of light">
+</section>
+
+<section id="bars">
+  <div class="pa n heavy" id="count" aria-hidden="true">32</div>
+  <div class="macro" id="macro"><img class="off" src="img/bars_r.webp" alt=""><img class="lit" src="img/bars_r.webp" alt="Close crop of the 32 red tail bars"></div>
+  <div class="sp"></div>
+  <div class="s m stack"><h2>Count the bars.</h2><p>There are 32, front and rear. CEER designed them for 1932, the year Saudi Arabia unified as a kingdom. We modeled every one, then lit the car so you'd find them.</p></div>
+</section>
+
+<section id="ward">
+  <div class="gut stack"><span class="k">Wardrobe</span><h2>Same frame. New wardrobe.</h2></div>
+  <div class="same" id="same">
+    <img src="img/a0054.webp" alt="Cabin with red trim"><img class="g" src="img/a0012.webp" alt="The same cabin from the same camera with green trim">
+    <div class="trim"><button type="button" id="tR" aria-pressed="true">Red</button><button type="button" id="tG" aria-pressed="false">Green</button></div>
+  </div>
+  <div class="strip">
+    <figure><img src="img/a0063.webp" alt="Red seats"><figcaption class="k">Red</figcaption></figure>
+    <figure><img src="img/a0030.webp" alt="Green trim seats"><figcaption class="k">Green</figcaption></figure>
+    <figure><img src="img/a0043.webp" alt="Cream seats"><figcaption class="k">Cream</figcaption></figure>
+    <figure><img src="img/a0005.webp" alt="White seats"><figcaption class="k">White</figcaption></figure>
+  </div>
+</section>
+
+<section id="stunt">
+  <div class="pa word heavy a" aria-hidden="true">Roof</div>
+  <div class="pa word heavy b2" aria-hidden="true">Off</div>
+  <div class="pa top" id="top">
+    <img class="see" src="img/top_see.webp" alt="Top view of the car in clay, see-through, with the roof off">
+    <img class="fin" src="img/top_final.webp" alt="The finished see-through top view">
+  </div>
+  <div class="sp"></div>
+  <div class="s m stack"><span class="k">The stunt</span><h2>The shot no camera gets.</h2><p>Roof off, from straight above. Every seat still in place.</p></div>
+</section>
+
+<section id="sel" class="gut">
+  <div class="stack"><h2>The selects.</h2></div>
+  <div class="bento">
+    <figure style="grid-column:1/5;grid-row:span 6"><img loading="lazy" src="img/a0042.webp" alt="SUV rear hero"><figcaption class="k">The rear light line</figcaption></figure>
+    <figure style="grid-column:5/13;grid-row:span 4"><img loading="lazy" src="img/a0048.webp" alt="Front wheel in motion"><figcaption class="k">Motion, wheel and light</figcaption></figure>
+    <figure style="grid-column:5/9;grid-row:span 2"><img loading="lazy" src="img/a0026.webp" alt="SUV tail"><figcaption class="k">Paint depth at the tail</figcaption></figure>
+    <figure style="grid-column:9/13;grid-row:span 2"><img loading="lazy" src="img/a0007.webp" alt="Sedan front wheel and fender"><figcaption class="k">The fender edge</figcaption></figure>
+    <figure style="grid-column:span 6;grid-row:span 4"><img loading="lazy" src="img/a0060.webp" alt="Wheel and caliper"><figcaption class="k">Red caliper, black wheel</figcaption></figure>
+    <figure style="grid-column:span 6;grid-row:span 4"><img loading="lazy" src="img/a0065.webp" alt="Door opening"><figcaption class="k">The door opening</figcaption></figure>
+    <figure style="grid-column:span 12;grid-row:span 7"><img loading="lazy" src="img/a0062.webp" alt="Wide cockpit in red"><figcaption class="k">The full cockpit</figcaption></figure>
+    <figure style="grid-column:span 5;grid-row:span 4"><img loading="lazy" src="img/a0051.webp" alt="Yoke and displays"><figcaption class="k">Yoke and displays</figcaption></figure>
+    <figure style="grid-column:span 4;grid-row:span 4"><img loading="lazy" src="img/a0002.webp" alt="Center console"><figcaption class="k">Console controls</figcaption></figure>
+    <figure style="grid-column:span 3;grid-row:span 4"><img loading="lazy" src="img/a0064.webp" alt="Seat base and floor"><figcaption class="k">Floor and seat base</figcaption></figure>
+    <figure style="grid-column:span 4;grid-row:span 3"><img loading="lazy" src="img/a0061.webp" alt="Red seat detail"><figcaption class="k">Seat stitching</figcaption></figure>
+    <figure style="grid-column:span 4;grid-row:span 3"><img loading="lazy" src="img/a0059.webp" alt="Door panel with green trim"><figcaption class="k">Green trim line</figcaption></figure>
+    <figure style="grid-column:span 4;grid-row:span 3"><img loading="lazy" src="img/a0003.webp" alt="Passenger dashboard"><figcaption class="k">Passenger displays</figcaption></figure>
+    <figure style="grid-column:span 6;grid-row:span 4"><img loading="lazy" src="img/a0044.webp" alt="Red ambient light"><figcaption class="k">Red ambient light</figcaption></figure>
+    <figure style="grid-column:span 6;grid-row:span 4"><img loading="lazy" src="img/a0015.webp" alt="Wide cockpit"><figcaption class="k">Wide cockpit</figcaption></figure>
+    <figure style="grid-column:span 12;grid-row:span 4"><img loading="lazy" src="img/a0014.webp" alt="Dash light line"><figcaption class="k">The dash light line</figcaption></figure>
+  </div>
+</section>
+
+<section id="launch">
+  <div class="pa d heavy">21 September<br>2026.</div>
+  <img class="pa" src="img/a0049.webp" alt="Red tail light streak in motion">
+  <div class="sp"></div>
+  <div class="s m"><p>CEER revealed EXOBOT at its World Premiere in Saudi Arabia. These are among the images made for that launch.</p></div>
+</section>
+
+<section id="turn">
+  <div class="pa q">Electric cars are quiet.</div>
+  <div class="pa l heavy">We aren't.</div>
+  <div class="pa y">Young. Slightly crazy. Hyperactive.</div>
+</section>
+
+<section id="c1">
+  <div class="pa h heavy">Building something that can't be photographed yet?</div>
+  <div class="pa y">Come and show us.</div>
+</section>
+
+<section id="c2">
+  <div class="pa h">If your car has a launch date, we should talk.</div>
+  <div class="pa con k">[CONTACT: confirm address]</div>
+  <div class="pa strip2" aria-hidden="true"><img src="img/a0047.jpg" alt=""></div>
+  <div class="build" aria-label="Project details">
+    <span class="bolt" style="left:calc(var(--u)*22);top:calc(var(--u)*22)"><svg><use href="#hex"/></svg></span>
+    <span class="bolt" style="left:calc(100% - var(--u)*22);top:calc(100% - var(--u)*22)"><svg><use href="#hex"/></svg></span>
+    <dl><dt>Project</dt><dd>CEER EXOBOT</dd><dt>Vehicles</dt><dd>Sedan, SUV</dd><dt>Debut</dt><dd>21 Sep 2026</dd><dt>Scope</dt><dd>3D models, lighting, rendering</dd><dt>Studio</dt><dd>TechInfinity</dd><dt>Credits</dt><dd>[CREDITS: confirm names and roles]</dd></dl>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var root=document.documentElement,$=function(s){return document.querySelector(s)};
+  var still=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  /* cover variants */
+  var btn=[].slice.call(document.querySelectorAll('.sw button'));
+  function setC(v){root.setAttribute('data-c',v);btn.forEach(function(b){b.setAttribute('aria-pressed',b.dataset.v===v?'true':'false')})}
+  function fromHash(){setC('film')}
+  btn.forEach(function(b){b.addEventListener('click',function(){setC(b.dataset.v);try{history.replaceState(null,'','#'+b.dataset.v)}catch(e){}})});
+  addEventListener('hashchange',fromHash);fromHash();
+
+  /* film: 241 frames at the source 24 fps timing, one image per frame */
+  (function(){
+    var N=241,sec=$('#film'),fc=$('#fc'),ft=$('#ft'),cx=fc.getContext('2d'),tx=ft.getContext('2d'),eb=$('.stage .eb'),bn=$('.stage .bn'),fn=$('#fn'),ld=$('#ld');
+    var L=new Array(N),done=0,cur=0,tgt=0,drawn=-1,matte=new Image();matte.src='img/film_matte.webp';
+    var h='';for(var i=0;i<32;i++)h+='<i></i>';ld.innerHTML=h;
+    function name(i){var n=String(i+1);while(n.length<4)n='0'+n;return 'seq/f_'+n+'.jpg'}
+    var order=[],seen={};[16,8,4,2,1].forEach(function(st){for(var i=0;i<N;i+=st)if(!seen[i]){seen[i]=1;order.push(i)}});if(!seen[N-1])order.push(N-1);
+    var at=0,act=0;
+    function pump(){while(act<8&&at<order.length){(function(i){act++;var im=new Image();im.onload=function(){L[i]=im;act--;done++;var on=Math.round(done/N*32);for(var k=0;k<32;k++)ld.children[k].className=k<on?'on':'';if(done>=N)ld.className='ld done';if(i===0||i===Math.round(cur))drawn=-1,paint();pump()};im.onerror=function(){act--;done++;pump()};im.src=name(i)})(order[at++])}}
+    function best(f){if(L[f])return L[f];for(var d=1;d<N;d++){if(L[f-d])return L[f-d];if(L[f+d])return L[f+d]}return null}
+    function paint(){
+      var f=Math.max(0,Math.min(N-1,Math.round(cur)));
+      if(f!==drawn){var im=best(f);if(im){cx.drawImage(im,0,0,1470,630);drawn=f}
+        var s=String(f+1);while(s.length<3)s='0'+s;fn.textContent=s;
+        tx.clearRect(0,0,1470,630);
+        if(f>=214&&im&&matte.complete){tx.globalCompositeOperation='source-over';tx.drawImage(im,0,0,1470,630);tx.globalCompositeOperation='destination-in';tx.drawImage(matte,0,0,1470,630)}
+      }
+      var r=Math.max(0,Math.min(1,(cur-216)/20));
+      bn.style.setProperty('--b',r.toFixed(3));bn.style.setProperty('--bt',((1-r)*46).toFixed(1));
+    }
+    function loop(){cur=still?tgt:cur+(tgt-cur)*.2;if(Math.abs(tgt-cur)<.02)cur=tgt;paint();if(cur!==tgt)requestAnimationFrame(loop);else run=false}
+    var run=false;
+    function read(){
+      if(root.getAttribute('data-c')!=='film')return;
+      var r=sec.getBoundingClientRect(),len=r.height-innerHeight,p=len>0?Math.max(0,Math.min(1,-r.top/len)):0;
+      tgt=Math.min(1,p/.93)*(N-1);
+      if(!run){run=true;requestAnimationFrame(loop)}
+    }
+    addEventListener('scroll',read,{passive:true});addEventListener('resize',read);addEventListener('hashchange',read);btn.forEach(function(b){b.addEventListener('click',read)});
+    matte.onload=function(){drawn=-1;paint()};
+    pump();read();
+  })();
+  /* ticks */
+  var rail=$('#rail'),bezel=$('#bezel'),h='';for(var i=0;i<32;i++)h+='<i></i>';rail.innerHTML=h;
+  var b='<circle cx="100" cy="100" r="86" fill="none" stroke="#F7FFFF" stroke-opacity=".28" stroke-width=".6"/>';
+  for(i=0;i<32;i++){var a=i/32*2*Math.PI,x1=100+90*Math.cos(a),y1=100+90*Math.sin(a),l=i%8==0?99:95;b+='<line x1="'+x1.toFixed(2)+'" y1="'+y1.toFixed(2)+'" x2="'+(100+l*Math.cos(a)).toFixed(2)+'" y2="'+(100+l*Math.sin(a)).toFixed(2)+'" stroke="'+(i==0?'#E4463A':'#F7FFFF')+'" stroke-opacity="'+(i==0?1:.55)+'" stroke-width="'+(i==0?1.6:.6)+'"/>'}
+  bezel.innerHTML=b;
+  var T=rail.children,wipe=$('#wipe'),range=$('#wipe-range'),macro=$('#macro'),count=$('#count'),car=$('#car'),lines=$('#lines'),light=$('#light'),lightBg=$('#light .bgl'),top=$('#top'),stunt=$('#stunt'),held=false;
+  function setX(v){wipe.style.setProperty('--x',v+'%')}
+  range.addEventListener('input',function(){held=true;setX(range.value)});
+  wipe.addEventListener('pointermove',function(e){if(e.pointerType!=='mouse')return;var r=wipe.getBoundingClientRect(),v=Math.max(6,Math.min(94,(e.clientX-r.left)/r.width*100));held=true;range.value=v;setX(v)});
+  /* trims */
+  var same=$('#same'),tR=$('#tR'),tG=$('#tG');
+  function trim(g){same.classList.toggle('green',g);tR.setAttribute('aria-pressed',g?'false':'true');tG.setAttribute('aria-pressed',g?'true':'false')}
+  tR.addEventListener('click',function(){trim(false)});tG.addEventListener('click',function(){trim(true)});
+  function t(el,a,b){var r=el.getBoundingClientRect(),v=innerHeight;return Math.max(0,Math.min(1,(v*a-r.top)/(r.height*b)))}
+  function frame(){
+    var max=root.scrollHeight-innerHeight,p=max>0?scrollY/max:0,on=Math.round(p*32);
+    for(var i=0;i<32;i++)T[i].className=i<on?'on':'';
+    root.style.setProperty('--r',(p*1440).toFixed(1));
+    if(still||root.dataset.flat)return;
+    if(!held){var w=t(wipe,.9,1.1),v=86-w*50;setX(v.toFixed(2));range.value=v}
+    var n=Math.round(t(macro,.8,1.1)*32);
+    macro.style.setProperty('--p',(n===0?0:n===32?100:(25+49.6*n/32)).toFixed(2)+'%');
+    count.textContent=(n<10?'0':'')+n;
+    var c=t(car,.95,1.8);car.style.setProperty('--d',((c-.5)*-46).toFixed(1));
+    lines.style.setProperty('--l',(t(lines,.92,1.2)*100).toFixed(1)+'%');
+    light.style.setProperty('--o',(1-t(light,.45,.55)).toFixed(3));
+    var s=t(stunt,.85,1.0);
+    top.style.setProperty('--f',Math.max(0,Math.min(1,(s-.3)*1.8)).toFixed(3));
+    stunt.style.setProperty('--w',((1-s)*70).toFixed(1));
+  }
+  var q=false;function ask(){if(!q){q=true;requestAnimationFrame(function(){q=false;frame()})}}
+  addEventListener('scroll',ask,{passive:true});addEventListener('resize',ask);frame();
+})();
+</script>
+
+</body>
+</html>
