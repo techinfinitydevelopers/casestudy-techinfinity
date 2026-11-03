@@ -555,5 +555,18 @@ p{margin:0;font-size:clamp(15px,calc(var(--u)*16.5),20px);font-weight:300;color:
 })();
 </script>
 
+<script>
+/* Framer embed bridge: parent page scroll drives this document */
+if(window.parent!==window){(function(){
+  var d=document.documentElement,last=0;
+  d.style.overflow='hidden';
+  function report(){parent.postMessage({type:'fs-height',h:d.scrollHeight},'*')}
+  addEventListener('message',function(e){var m=e.data;if(m&&m.type==='fs-scroll'){last=m.y;scrollTo({top:m.y,behavior:'instant'})}});
+  addEventListener('scroll',function(){if(Math.abs(scrollY-last)>2){last=scrollY;parent.postMessage({type:'fs-goto',y:scrollY},'*')}},{passive:true});
+  addEventListener('load',report);addEventListener('resize',report);
+  new ResizeObserver(report).observe(document.body);
+})()}
+</script>
+
 </body>
 </html>
