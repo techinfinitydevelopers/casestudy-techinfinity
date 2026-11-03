@@ -555,5 +555,16 @@ p{margin:0;font-size:clamp(15px,calc(var(--u)*16.5),20px);font-weight:300;color:
 })();
 </script>
 
+<script>
+if(window.parent!==window){
+  addEventListener('wheel',function(e){
+    var d=document.documentElement,
+        top=scrollY<=0&&e.deltaY<0,
+        bot=scrollY+innerHeight>=d.scrollHeight-1&&e.deltaY>0;
+    if(top||bot)parent.postMessage({type:'fs-wheel',dy:e.deltaY},'*');
+  },{passive:true});
+}
+</script>
+
 </body>
 </html>
